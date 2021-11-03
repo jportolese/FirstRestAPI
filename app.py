@@ -1,6 +1,7 @@
 # access os environment variables which is how heroku accesses the
 # postgres connection string
 import os
+import re
 
 from flask import Flask, request
 from flask_restful import Api
@@ -13,7 +14,11 @@ from resources.store import Store, StoreList
 
 app = Flask(__name__)
 # if not running in heroku then the sqlite3 connection is used below...
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('NEW_DATABASE_URL', 'sqlite:///data.db')
+# issue with heroku postgres new connection string should start with postgresql not postgres
+uri = os.getenv("DATABASE_URL")
+if uri.startswith("postgres://"):
+    uri = uri.replace("postgres://", "postgresql://")
+app.config['SQLALCHEMY_DATABASE_URI'] = uri  # os.environ.get('NEW_DATABASE_URL', 'sqlite:///data.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  #
 app.secret_key = 'jep'
 api = Api(app)
